@@ -10,6 +10,7 @@ import (
 	ext_v1beta1 "k8s.io/api/extensions/v1beta1"
 	rbac_v1beta1 "k8s.io/api/rbac/v1beta1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -87,6 +88,25 @@ func GetObjectMetaData(obj interface{}) (objectMeta meta_v1.ObjectMeta) {
 		objectMeta = object.ObjectMeta
 	case *api_v1.Event:
 		objectMeta = object.ObjectMeta
+	case *unstructured.Unstructured:
+		objectMeta = meta_v1.ObjectMeta{
+			Name:                       object.GetName(),
+			Namespace:                  object.GetNamespace(),
+			UID:                        object.GetUID(),
+			ResourceVersion:            object.GetResourceVersion(),
+			Generation:                 object.GetGeneration(),
+			CreationTimestamp:          object.GetCreationTimestamp(),
+			DeletionTimestamp:          object.GetDeletionTimestamp(),
+			DeletionGracePeriodSeconds: object.GetDeletionGracePeriodSeconds(),
+			Labels:                     object.GetLabels(),
+			Annotations:                object.GetAnnotations(),
+			OwnerReferences:            object.GetOwnerReferences(),
+			Finalizers:                 object.GetFinalizers(),
+			ClusterName:                object.GetClusterName(),
+			ManagedFields:              object.GetManagedFields(),
+		}
+	default:
+		logrus.Warnf("Object type is %T", obj)
 	}
 	return objectMeta
 }
